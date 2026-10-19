@@ -1,0 +1,17 @@
+app/
+├── main.py         # 앱 생성 · CORS · 라우터 등록
+├── core/
+│   ├── config.py   # 설정 (.env)
+│   └── security.py
+├── db/
+│   └── database.py
+├── models/
+│   └── user.py
+├── schemas/
+│   └── user.py     # 요청 · 응답 모양
+└── api/
+    ├── deps.py
+    └── routers/
+        ├── auth.py
+        └── users.py
+tests/  .env  requirements.txt

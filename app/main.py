@@ -1,24 +1,54 @@
-# 전체 서버 진입점, FastAPI 객체 생성, 라우터 등록, 테이블 생성
+from contextlib import asynccontextmanager
 
-from pathlib import Path
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from sqlalchemy.orm import sessionmaker
+from starlette.exceptions import HTTPException
 
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from app.api.routers import user, board
-from app.db.database import Base, engine
-from app.models.board import Board
+from app.api.routers import board, user
+from app.db.database import Base, engine, get_db
 from app.models.user import User
-app = FastAPI(title="노트 API", version="0.1.0")
-
-app.include_router(user.router)
-app.include_router(board.router)
-
-Base.metadata.create_all(bind=engine)
-
-@app.get("/")
-def main():
-    return {"message": "메인 페이지입니다."}
 
 
-# 순수 HTML/CSS/JS 노트 웹 페이지
-app.mount("/web", StaticFiles(directory=Path(__file__).resolve().parent / "web", html=True), name="web")
+def create_app(database_engine=engine):
+    @asynccontextmanager
+    async def lifespan(application):
+        Base.metadata.create_all(bind=database_engine)
+        # create_all does not add indexes to an existing table.
+        for index in User.__table__.indexes:
+            index.create(bind=database_engine, checkfirst=True)
+        yield
+
+    application = FastAPI(title="회원 API", version="0.1.0", lifespan=lifespan)
+    sessions = sessionmaker(bind=database_engine, autoflush=False)
+
+    def session_dependency():
+        with sessions() as session:
+            yield session
+
+    application.dependency_overrides[get_db] = session_dependency
+    application.include_router(user.router)
+    application.include_router(board.router)
+
+    @application.exception_handler(HTTPException)
+    async def http_error(request: Request, exc: HTTPException):
+        return JSONResponse(status_code=exc.status_code,
+                            content={"code": exc.status_code, "message": str(exc.detail), "result": None},
+                            headers=exc.headers)
+
+    @application.exception_handler(RequestValidationError)
+    async def validation_error(request: Request, exc: RequestValidationError):
+        # Do not reflect passwords from invalid request bodies.
+        return JSONResponse(status_code=422,
+                            content={"code": 422, "message": "요청값이 올바르지 않습니다.",
+                                     "result": "입력값을 확인해 주세요."})
+
+    @application.get("/")
+    def main():
+        return {"code": 200, "message": "메인 페이지입니다.", "result": None}
+
+    return application
+
+
+app = create_app()

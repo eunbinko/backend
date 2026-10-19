@@ -1,21 +1,36 @@
-# 클라이언트로부터 받는 데이터의 형식   HTTP 요청에 포함된 데이터
-# 클라이언트에게 전달해줄 데이터의 형식  HTTP 응답에 포함된 데이터
-
-from pydantic import BaseModel
-
-class SignUpReq(BaseModel):
-    email: str
-    password: str
-    name: str
-
-class SignUpRes(BaseModel):
-    email: str
-    name: str
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class LoginReq(BaseModel):
-    email: str
-    password: str
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=128)
 
-class LoginRes(BaseModel):
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, value):
+        return value.strip().lower() if isinstance(value, str) else value
+
+
+class SignUpReq(LoginReq):
+    name: str = Field(min_length=1, max_length=100)
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def strip_name(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+
+class UserResult(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     email: str
+    name: str
+
+
+class SignUpRes(BaseModel):
+    code: int
+    message: str
+    result: UserResult
+
+
+class LoginRes(SignUpRes):
+    pass

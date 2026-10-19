@@ -1,20 +1,34 @@
-# 보안상 중요한 값이나 기능들을 모아둔 파일, 토큰 생성, 비밀번호 암호화 등
-
+import hashlib
+import hmac
+import secrets
 from datetime import datetime, timedelta, timezone
+
 import jwt
 from app.core.config import settings
 
+ITERATIONS = 600_000
 
-def createToken(userId: str):
-    from datetime import timezone
-    payload = {
-        "sub": userId,
-        "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
-    }
-    print(settings.SECRET_KEY)
-    return  jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
-# 토큰 확인하는 함수
-# 토큰에서 원하는 값을 가져오는 함수
-# 비밀번호를 암호화 하는 함수
-# 비밀번호 확인
+def hash_password(password: str) -> str:
+    salt = secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), ITERATIONS)
+    return f"pbkdf2_sha256${ITERATIONS}${salt}${digest.hex()}"
+
+
+def verify_password(password: str, encoded: str) -> bool:
+    try:
+        algorithm, rounds, salt, expected = encoded.split("$")
+        if algorithm != "pbkdf2_sha256" or int(rounds) != ITERATIONS:
+            return False
+        actual = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), int(rounds))
+        return hmac.compare_digest(actual.hex(), expected)
+    except (ValueError, TypeError):
+        return False
+
+
+def createToken(userId: str) -> str:
+    now = datetime.now(timezone.utc)
+    return jwt.encode(
+        {"sub": userId, "iat": now, "exp": now + timedelta(minutes=30)},
+        settings.SECRET_KEY, algorithm=settings.ALGORITHM,
+    )

@@ -1,50 +1,43 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
-from app.schemas.user import LoginReq, LoginRes, SignUpReq, SignUpRes
-from app.core.security import createToken
-from app.db.database import SessionLocal
-from app.models.user import User
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
+from app.core.config import settings
+from app.core.security import createToken, hash_password, verify_password
 from app.db.database import get_db
+from app.models.user import User
+from app.schemas.user import LoginReq, LoginRes, SignUpReq, SignUpRes
 
 router = APIRouter(prefix="/user", tags=["user"])
+_DUMMY_HASH = hash_password("dummy-password-for-timing")
 
-# 제어의 역전 : IoC, 객체 생성이나 프로그램의 실행 흐름의 제어를 외부로 넘기는 프로그래밍 방식
-# 의존성 주입 : DI, 필요한 객체를 우리가 직접 생성하지 않고 외부에서 전달해주는 방식
-@router.post("/signup", response_model=SignUpRes)
+
+@router.post("/signup", response_model=SignUpRes, status_code=201)
 def signup(req: SignUpReq, db: Session = Depends(get_db)):
-    # db = SessionLocal()
+    if db.scalar(select(User).where(User.email == req.email)):
+        raise HTTPException(409, "이미 가입한 이메일입니다.")
+    user = User(email=req.email, password=hash_password(req.password), name=req.name)
+    db.add(user)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        if db.scalar(select(User).where(User.email == req.email)):
+            raise HTTPException(409, "이미 가입한 이메일입니다.") from None
+        raise
+    db.refresh(user)
+    return {"code": 201, "message": "회원가입이 완료되었습니다.", "result": user}
 
-    user = db.scalar(select(User).where(User.email == req.email))
-    if user:
-        print("중복 가입")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="이미 가입된 이메일입니다.")
-
-
-    newUser = User(
-        email=req.email, password=req.password, name=req.name
-    )
-    db.add(newUser)
-    db.commit()
-    return req
 
 @router.post("/login", response_model=LoginRes)
-def login(req: LoginReq, res: Response):
-    db = SessionLocal()
-    # 회원 가입이 되어있는지 아닌지 확인
+def login(req: LoginReq, res: Response, db: Session = Depends(get_db)):
     user = db.scalar(select(User).where(User.email == req.email))
-    if user:
-        if user.password == req.password:
-            res.set_cookie(
-                "EN_AT",
-                createToken(req.email),
-                httponly=True,
-                secure=False,
-                samesite="lax"
-            )
-            print("정상 로그인")
-            return user
-    print("비정상 로그인")
-
-    return user
-
+    valid = verify_password(req.password, user.password if user else _DUMMY_HASH)
+    if user is None or not valid:
+        raise HTTPException(401, "이메일 또는 비밀번호가 올바르지 않습니다.")
+    res.set_cookie(
+        "EN_AT", createToken(user.email), httponly=True,
+        secure=settings.COOKIE_SECURE, samesite="lax", max_age=1800,
+    )
+    return {"code": 200, "message": "로그인에 성공했습니다.", "result": user}

@@ -1,11 +1,12 @@
 name = "backend-dev"
 description = "FastAPI 백엔드 개발자, app 폴더의 프로젝트 담당"
-model = "gpt-=5.6-Luna"
-model_reasoning_effort = "mdeium"
+model = "gpt-5.6-Luna"
+model_reasoning_effort = "medium"
 sandbox_mode = "Auto" #"read-only" 코드 못 고치게 하려면
-deceloper_instructions = """
+developer_instructions = """
+설정 파일은 UTF-8로 읽어 한글 지침을 정확히 확인해.
 
-너는 app 프로젝트르르 개발하는 FastAPI 개발자야.
+너는 app 프로젝트를 개발하는 FastAPI 개발자야.
 FastAPI 프로젝트의 프로젝트 구조를
 현재 프로젝트 구조에 맞게 개발해
 """

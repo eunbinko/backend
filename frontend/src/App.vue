@@ -1,6 +1,8 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { beginKakaoLogin, consumeKakaoError, loadKakaoSdk, shouldShowKakaoLogin } from './kakao-login'
+import EsgAtlasView from './views/EsgAtlasView.vue'
+import { getRoute, shouldLoadBoardList, shouldLoadCurrentUser } from './app-routing'
 
 const apiBase = (import.meta.env.VITE_API_BASE || 'http://localhost:8000').replace(/\/+$/, '')
 const boards = ref([])
@@ -22,15 +24,7 @@ const kakaoKey = import.meta.env.VITE_KAKAO_JAVASCRIPT_KEY
 const route = ref(readRoute())
 let routeTimer
 
-function readRoute() {
-  const path = window.location.pathname.replace(/\/$/, '') || '/'
-  if (path === '/login') return { page: 'login' }
-  if (path === '/signup') return { page: 'signup' }
-  if (path === '/write') return { page: 'write' }
-  const detail = path.match(/^\/posts\/(\d+)$/)
-  if (detail) return { page: 'detail', id: Number(detail[1]) }
-  return { page: 'list' }
-}
+function readRoute() { return getRoute(window.location.pathname) }
 
 const sortedBoards = computed(() => [...boards.value].sort((a, b) => b.idx - a.idx))
 const currentUser = ref('')
@@ -45,7 +39,7 @@ function navigate(path) {
   clearTimeout(routeTimer)
   routeTimer = setTimeout(() => { pageLoading.value = false }, 280)
   if (route.value.page === 'detail') openBoard(route.value.id)
-  if (route.value.page === 'list') selected.value = null
+  if (route.value.page === 'atlas') selected.value = null
   if (route.value.page === 'login' || route.value.page === 'signup') authMode.value = route.value.page
 }
 
@@ -192,11 +186,11 @@ function formatNumber(value) { return new Intl.NumberFormat('ko-KR').format(valu
 
 onMounted(() => {
   window.addEventListener('popstate', onPopState)
-  loadBoards()
-  restoreCurrentUser()
+  if (shouldLoadCurrentUser(route.value.page)) restoreCurrentUser()
+  if (shouldLoadBoardList(route.value.page)) loadBoards()
   if (route.value.page === 'detail') openBoard(route.value.id)
   if (route.value.page === 'login' || route.value.page === 'signup') authMode.value = route.value.page
-  loadKakaoSdk({ key: kakaoKey }).then((sdk) => {
+  if (shouldShowKakaoLogin(route.value.page)) loadKakaoSdk({ key: kakaoKey }).then((sdk) => {
     kakaoSdk.value = sdk
     kakaoReady.value = true
   }).catch(() => {
@@ -210,8 +204,9 @@ onUnmounted(() => { window.removeEventListener('popstate', onPopState); clearTim
 </script>
 
 <template>
+  <EsgAtlasView v-if="route.page === 'atlas'" />
   <a class="skip-link" href="#main">본문으로 건너뛰기</a>
-  <header class="topbar">
+  <header v-if="route.page !== 'atlas'" class="topbar">
     <a class="brand" href="/" aria-label="모아 홈" @click.prevent="navigate('/')">
       <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>모아</span>
     </a>
@@ -222,7 +217,7 @@ onUnmounted(() => { window.removeEventListener('popstate', onPopState); clearTim
     </nav>
   </header>
 
-  <main id="main" class="page-shell" :class="`page-${route.page}`">
+  <main v-if="route.page !== 'atlas'" id="main" class="page-shell" :class="`page-${route.page}`">
     <section class="masthead">
       <div class="masthead-copy">
         <p class="edition">모아의 기록장 <span class="edition-rule"></span> 작은 생각을 오래 읽도록</p>

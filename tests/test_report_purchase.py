@@ -14,7 +14,10 @@ def test_missing_portone_settings_fail_clearly(monkeypatch):
         raise AssertionError("missing configuration should fail")
 
 
-def test_report_order_creation_requires_login_and_handles_missing_settings(client):
+def test_report_order_creation_requires_login_and_handles_missing_settings(client, monkeypatch):
+    monkeypatch.setattr(settings, "PORTONE_STORE_ID", "")
+    monkeypatch.setattr(settings, "PORTONE_TOSSPAYMENTS_CHANNEL_KEY", "")
+    monkeypatch.setattr(settings, "PORTONE_API_SECRET", "")
     assert client.post("/esg/reports/1/orders", json={"amount_krw": 1}).status_code == 401
     assert client.post("/user/signup", json={
         "email": "buyer@example.com", "password": "very-secret", "name": "buyer",

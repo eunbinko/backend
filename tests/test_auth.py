@@ -17,7 +17,9 @@ def test_signup_stores_hash_and_returns_public_fields(client, database_engine, s
     response = client.post("/user/signup", json=signup_data)
     assert response.status_code == 201
     assert response.json() == {
-        "code": 201, "result": {"email": signup_data["email"], "name": signup_data["name"]}
+        "code": 201,
+        "message": "회원가입이 완료되었습니다.",
+        "result": {"email": signup_data["email"], "name": signup_data["name"]},
     }
     with Session(database_engine) as session:
         user = session.scalar(select(User))
@@ -31,7 +33,7 @@ def test_duplicate_signup_does_not_overwrite_user(client, database_engine, signu
     response = client.post("/user/signup", json={**signup_data, "name": "다른 이름", "password": "other"})
     assert response.status_code == 409
     assert response.json()["code"] == 409
-    assert isinstance(response.json()["result"], str)
+    assert response.json()["result"] is None
     with Session(database_engine) as session:
         user = session.scalar(select(User))
         assert user.name == signup_data["name"]
@@ -52,15 +54,53 @@ def test_login_sets_signed_expiring_httponly_cookie(client, signup_data):
     response = client.post("/user/login", json={"email": signup_data["email"], "password": signup_data["password"]})
     assert response.status_code == 200
     assert response.json() == {
-        "code": 200, "result": {"email": signup_data["email"], "name": signup_data["name"]}
+        "code": 200,
+        "message": "로그인에 성공했습니다.",
+        "result": {"email": signup_data["email"], "name": signup_data["name"]},
     }
     cookie = response.headers["set-cookie"]
     assert "HttpOnly" in cookie
     assert "SameSite=lax" in cookie
     assert "Max-Age=1800" in cookie
     claims = jwt.decode(response.cookies["EN_AT"], settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    assert claims["sub"] == signup_data["email"]
+    assert claims["sub"] == "1"
     assert claims["exp"] - claims["iat"] == 1800
+
+
+def test_current_user_restores_session_and_logout_clears_cookie(client, signup_data):
+    client.post("/user/signup", json=signup_data)
+    login = client.post("/user/login", json=signup_data)
+    assert login.status_code == 200
+
+    current = client.get("/user/me")
+    assert current.status_code == 200
+    assert current.json()["result"] == {"email": signup_data["email"], "name": signup_data["name"]}
+
+    logout = client.post("/user/logout")
+    assert logout.status_code == 200
+    assert "Max-Age=0" in logout.headers["set-cookie"]
+    assert "Path=/" in logout.headers["set-cookie"]
+    assert client.get("/user/me").json()["result"] is None
+
+
+def test_current_user_rejects_missing_or_invalid_cookie(client):
+    assert client.get("/user/me").json()["result"] is None
+    client.cookies.set("EN_AT", "not-a-valid-token")
+    assert client.get("/user/me").json()["result"] is None
+
+
+def test_frontend_origin_can_call_api_with_credentials(client):
+    response = client.options(
+        "/user/login",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+    assert response.headers["access-control-allow-credentials"] == "true"
 
 
 def test_secure_cookie_setting(client, signup_data, monkeypatch):
@@ -151,4 +191,7 @@ def test_invalid_stored_hash_is_rejected(stored):
 def test_existing_board_routes(client):
     response = client.post("/board/register", json={"title": "제목", "contents": "내용"})
     assert response.status_code == 200
-    assert client.get(f"/board/read/{response.json()['idx']}").json() == response.json()
+    created = response.json()
+    read = client.get(f"/board/read/{created['result']['idx']}")
+    assert read.status_code == 200
+    assert read.json()["result"] == created["result"]

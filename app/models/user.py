@@ -7,7 +7,7 @@ class User(Base):
     __tablename__ = "user"
 
     idx: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(unique=True, index=True)
+    email: Mapped[str | None] = mapped_column(unique=True, index=True, nullable=True)
     password: Mapped[str] = mapped_column()
     name: Mapped[str] = mapped_column()
 

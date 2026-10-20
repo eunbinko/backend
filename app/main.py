@@ -2,18 +2,23 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import sessionmaker
 from starlette.exceptions import HTTPException
 
 from app.api.routers import board, user
+from app.core.config import settings
 from app.db.database import Base, engine, get_db
 from app.models.user import User
+from app.models.oauth_account import OAuthAccount  # noqa: F401
+from app.db.migrations import migrate_sqlite_user_email_nullable
 
 
 def create_app(database_engine=engine):
     @asynccontextmanager
     async def lifespan(application):
+        migrate_sqlite_user_email_nullable(database_engine)
         Base.metadata.create_all(bind=database_engine)
         # create_all does not add indexes to an existing table.
         for index in User.__table__.indexes:
@@ -28,6 +33,13 @@ def create_app(database_engine=engine):
             yield session
 
     application.dependency_overrides[get_db] = session_dependency
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=[origin.strip() for origin in settings.FRONTEND_ORIGINS.split(",") if origin.strip()],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     application.include_router(user.router)
     application.include_router(board.router)
 

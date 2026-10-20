@@ -22,7 +22,7 @@ class SignUpReq(LoginReq):
 
 class UserResult(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    email: str
+    email: str | None
     name: str
 
 

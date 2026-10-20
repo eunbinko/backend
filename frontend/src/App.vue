@@ -1,7 +1,8 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { beginKakaoLogin, consumeKakaoError, loadKakaoSdk, shouldShowKakaoLogin } from './kakao-login'
 
-const apiBase = import.meta.env.VITE_API_BASE || '/api'
+const apiBase = (import.meta.env.VITE_API_BASE || 'http://localhost:8000').replace(/\/+$/, '')
 const boards = ref([])
 const selected = ref(null)
 const loading = ref(false)
@@ -13,6 +14,11 @@ const auth = ref({ name: '', email: '', password: '' })
 const post = ref({ title: '', contents: '' })
 const busy = ref(false)
 const busyAction = ref('')
+const kakaoSdk = ref(null)
+const kakaoReady = ref(false)
+const kakaoError = ref('')
+const kakaoBusy = ref(false)
+const kakaoKey = import.meta.env.VITE_KAKAO_JAVASCRIPT_KEY
 const route = ref(readRoute())
 let routeTimer
 
@@ -134,13 +140,71 @@ async function submitAuth() {
   } catch (cause) { error.value = cause.message } finally { busy.value = false; busyAction.value = '' }
 }
 
+async function startKakaoLogin() {
+  if (kakaoBusy.value || !kakaoSdk.value) return
+  kakaoBusy.value = true
+  kakaoError.value = ''
+  try {
+    await beginKakaoLogin({
+      kakao: kakaoSdk.value,
+      apiBase,
+      requestState: async () => {
+        const response = await fetch(`${apiBase}/user/kakao/state`, {
+          method: 'POST', credentials: 'include', headers: { Accept: 'application/json' },
+        })
+        const data = await response.json()
+        if (!response.ok) throw new Error('Kakao login could not be started')
+        return data.result
+      },
+    })
+  } catch {
+    kakaoError.value = '카카오 로그인을 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+    kakaoBusy.value = false
+  }
+}
+
+async function restoreCurrentUser() {
+  try {
+    const data = await request('/user/me')
+    currentUser.value = unwrap(data)?.name || ''
+  } catch {
+    currentUser.value = ''
+  }
+}
+
+async function logout() {
+  if (busy.value) return
+  busy.value = true
+  try {
+    await request('/user/logout', {})
+    currentUser.value = ''
+    auth.value.password = ''
+    navigate('/login')
+    notice.value = '로그아웃되었습니다.'
+  } catch (cause) {
+    error.value = cause.message
+  } finally {
+    busy.value = false
+  }
+}
+
 function formatNumber(value) { return new Intl.NumberFormat('ko-KR').format(value) }
 
 onMounted(() => {
   window.addEventListener('popstate', onPopState)
   loadBoards()
+  restoreCurrentUser()
   if (route.value.page === 'detail') openBoard(route.value.id)
   if (route.value.page === 'login' || route.value.page === 'signup') authMode.value = route.value.page
+  loadKakaoSdk({ key: kakaoKey }).then((sdk) => {
+    kakaoSdk.value = sdk
+    kakaoReady.value = true
+  }).catch(() => {
+    kakaoError.value = '카카오 로그인을 사용할 수 없습니다. JavaScript 키와 SDK 연결을 확인해 주세요.'
+  })
+  if (route.value.page === 'login' && consumeKakaoError()) {
+    error.value = '카카오 로그인에 실패했습니다. 다시 시도해 주세요.'
+  }
 })
 onUnmounted(() => { window.removeEventListener('popstate', onPopState); clearTimeout(routeTimer) })
 </script>
@@ -204,4 +268,16 @@ onUnmounted(() => { window.removeEventListener('popstate', onPopState); clearTim
     </Transition>
     <footer class="page-footer"><span>모아</span><span>생각을 담아두는 곳</span></footer>
   </main>
+  <Teleport v-if="shouldShowKakaoLogin(route.page)" to=".auth-page">
+    <div class="social-login">
+      <span class="social-divider">또는</span>
+      <p v-if="kakaoError" class="inline-error" role="alert">{{ kakaoError }}</p>
+      <button class="kakao-button" type="button" :disabled="!kakaoReady || kakaoBusy" @click="startKakaoLogin">
+        {{ kakaoBusy ? '카카오 로그인 연결 중…' : '카카오로 로그인' }}
+      </button>
+    </div>
+  </Teleport>
+  <Teleport v-if="currentUser" to=".top-actions">
+    <button class="logout-button" type="button" :disabled="busy" @click="logout">로그아웃</button>
+  </Teleport>
 </template>

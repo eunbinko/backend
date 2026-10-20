@@ -6,9 +6,13 @@ describe('public atlas routing', () => {
   })
 
   test('keeps authentication and existing post routes available', () => {
-    expect(getRoute('/login')).toEqual({ page: 'login' })
+    expect(getRoute('/login')).toEqual({ page: 'login', next: null })
     expect(getRoute('/signup')).toEqual({ page: 'signup' })
     expect(getRoute('/posts/17')).toEqual({ page: 'detail', id: 17 })
+  })
+
+  test('supports stable report detail URLs', () => {
+    expect(getRoute('/reports/23')).toEqual({ page: 'report', id: 23 })
   })
 
   test('does not load private board or user APIs for the public atlas', () => {

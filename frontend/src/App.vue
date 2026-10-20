@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { beginKakaoLogin, consumeKakaoError, loadKakaoSdk, shouldShowKakaoLogin } from './kakao-login'
 import EsgAtlasView from './views/EsgAtlasView.vue'
+import ReportDetailView from './views/ReportDetailView.vue'
 import { getRoute, shouldLoadBoardList, shouldLoadCurrentUser } from './app-routing'
 
 const apiBase = (import.meta.env.VITE_API_BASE || 'http://localhost:8000').replace(/\/+$/, '')
@@ -39,6 +40,7 @@ function navigate(path) {
   clearTimeout(routeTimer)
   routeTimer = setTimeout(() => { pageLoading.value = false }, 280)
   if (route.value.page === 'detail') openBoard(route.value.id)
+  if (route.value.page === 'report') selected.value = null
   if (route.value.page === 'atlas') selected.value = null
   if (route.value.page === 'login' || route.value.page === 'signup') authMode.value = route.value.page
 }
@@ -128,7 +130,8 @@ async function submitAuth() {
     } else {
       currentUser.value = user.name
       auth.value.password = ''
-      navigate('/')
+      const next = route.value.next
+      navigate(next && next.startsWith('/') ? next : '/')
       notice.value = `${user.name}님, 로그인했습니다.`
     }
   } catch (cause) { error.value = cause.message } finally { busy.value = false; busyAction.value = '' }
@@ -205,6 +208,7 @@ onUnmounted(() => { window.removeEventListener('popstate', onPopState); clearTim
 
 <template>
   <EsgAtlasView v-if="route.page === 'atlas'" />
+  <ReportDetailView v-if="route.page === 'report'" :report-id="route.id" :navigate="navigate" />
   <a class="skip-link" href="#main">본문으로 건너뛰기</a>
   <header v-if="route.page !== 'atlas'" class="topbar">
     <a class="brand" href="/" aria-label="모아 홈" @click.prevent="navigate('/')">

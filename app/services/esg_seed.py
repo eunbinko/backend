@@ -38,6 +38,7 @@ def seed_esg_data(session: Session) -> None:
             ))
             report_values = {
                 "title": report_data["title"], "cover_image_url": report_data.get("cover_image_url"),
+                "page_count": report_data.get("page_count"),
                 "pdf_url": report_data["pdf_url"], "landing_page_url": report_data["landing_page_url"],
                 "source_url": report_data["source_url"], "verification_date": report_data["verification_date"],
             }

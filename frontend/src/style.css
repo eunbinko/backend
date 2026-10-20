@@ -304,3 +304,17 @@ body.dialog-open { overflow: hidden; }
   .atlas-page *, .atlas-page *::before, .atlas-page *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation: none !important; }
 }
 .atlas-threads { inset: 0; width: 100%; height: 100%; }
+
+.report-detail-page { min-height: 100vh; padding: 46px 24px 80px; background: #f4f1e9; color: #242d27; }
+.report-back { display: inline-block; max-width: 820px; margin: 0 auto 22px; color: #647168; font-size: 13px; }
+.report-summary-card { max-width: 820px; margin: 0 auto; padding: clamp(26px, 6vw, 64px); border: 1px solid #d9ded5; border-radius: 8px; background: #fffefa; box-shadow: 0 24px 70px #1a30220c; }
+.report-summary-card h1 { max-width: 650px; margin: 12px 0 24px; font-family: Georgia, 'Noto Serif KR', serif; font-size: clamp(28px, 5vw, 46px); line-height: 1.25; letter-spacing: -.04em; }
+.report-summary { max-width: 650px; color: #546158; font-size: 15px; line-height: 1.9; }
+.report-metadata { display: flex; gap: 56px; margin: 32px 0; padding: 22px 0; border-top: 1px solid #e6e8e2; border-bottom: 1px solid #e6e8e2; }
+.report-metadata div { display: grid; gap: 7px; }
+.report-metadata dt { color: #879087; font-size: 11px; }
+.report-metadata dd { margin: 0; font-size: 20px; font-weight: 650; }
+.report-summary-card .solid-button { min-height: 48px; padding: 0 20px; border: 0; border-radius: 4px; background: #233e33; color: white; cursor: pointer; }
+.report-summary-card .solid-button:disabled { background: #abb3ac; cursor: not-allowed; }
+.report-source { display: inline-block; margin-left: 18px; color: #637269; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 560px) { .report-detail-page { padding: 24px 16px 56px; } .report-metadata { gap: 28px; } .report-source { display: block; margin: 18px 0 0; } }

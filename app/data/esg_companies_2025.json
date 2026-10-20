@@ -24,6 +24,7 @@
       {
         "title": "삼성전자 지속가능경영보고서 2025",
         "report_year": 2025,
+        "page_count": 87,
         "cover_image_url": null,
         "pdf_url": "https://www.samsung.com/sec/sustainability/media/pdf/Samsung_Electronics_Sustainability_Report_2025_KOR.pdf",
         "landing_page_url": "https://www.samsung.com/sec/sustainability/digital-library/sustainability-report/",
@@ -56,6 +57,7 @@
     "reports": [
       {
         "report_year": 2025,
+        "page_count": null,
         "verification_date": "2026-10-20",
         "pdf_url": null,
         "source_url": "https://www.kepco.co.kr/home/esg/esgreport/sustainability/boardList.do",
@@ -89,6 +91,7 @@
     "reports": [
       {
         "report_year": 2025,
+        "page_count": null,
         "verification_date": "2026-10-20",
         "pdf_url": null,
         "source_url": "https://kind.krx.co.kr/external/2025/06/19/000512/20250616000286/61979.htm",
@@ -123,6 +126,7 @@
       {
         "title": "2025 현대자동차 지속가능성 보고서",
         "report_year": 2025,
+        "page_count": null,
         "cover_image_url": null,
         "pdf_url": "https://org3.hyundai.com/content/hyundai/ww/data/csr/data/0000000053/attach/korean/hmc-2025-sustainability-report-ko-v10.pdf",
         "landing_page_url": "https://www.hyundai.com/worldwide/en/company/sustainable-management/sustainability-report",
@@ -156,6 +160,7 @@
       {
         "title": "Kia Sustainability Report 2025",
         "report_year": 2025,
+        "page_count": null,
         "cover_image_url": null,
         "pdf_url": "https://worldwide.kia.com/int/files/company/sr/sustainability-report/sustainability-report-2025-int.pdf",
         "landing_page_url": "https://worldwide.kia.com/int/company/sustainability",
@@ -189,6 +194,7 @@
       {
         "title": "현대모비스 지속가능성보고서 2025",
         "report_year": 2025,
+        "page_count": 167,
         "cover_image_url": null,
         "pdf_url": "https://www.mobis.com/upload/202509011001185950.pdf",
         "landing_page_url": "https://www.mobis.com/en/sustain/sustain.do",
@@ -221,6 +227,7 @@
     "reports": [
       {
         "report_year": 2025,
+        "page_count": null,
         "verification_date": "2026-10-20",
         "pdf_url": null,
         "source_url": "https://kind.krx.co.kr/external/2025/09/08/000238/20250908000130/61979.htm",
@@ -255,6 +262,7 @@
       {
         "title": "S-OIL ESG 보고서",
         "report_year": 2025,
+        "page_count": null,
         "cover_image_url": null,
         "pdf_url": "https://www.s-oil.com/common/page/FileDownload.aspx?FileName=639216273326344172.pdf&PIndex=20&PathType=BOARD&TFileName=%E2%98%85+2025+S-OIL+ESG+%EB%B3%B4%EA%B3%A0%EC%84%9C_ENG_final.pdf&i=15545",
         "landing_page_url": "https://www.s-oil.com/en/m/sustainability/Report.aspx",
@@ -287,6 +295,7 @@
     "reports": [
       {
         "report_year": 2024,
+        "page_count": null,
         "verification_date": "2026-10-20",
         "pdf_url": null,
         "source_url": "https://www.samsunglife.com/individual/display/intro/PDK-CISSI030240M",
@@ -321,6 +330,7 @@
       {
         "title": "LG Electronics 2024-2025 Sustainability Report",
         "report_year": 2025,
+        "page_count": null,
         "cover_image_url": null,
         "pdf_url": "https://www.lg.com/content/dam/lge/global/sustainability/pdf/2024-2025_LGE_Sustainability_Report_English.pdf",
         "landing_page_url": "https://www.lg.com/global/newsroom/sustainability/sustainability-report/",

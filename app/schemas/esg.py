@@ -1,4 +1,10 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
+
+
+class EsgReportDetailResponseEnvelope(BaseModel):
+    code: int
+    message: str
+    result: "EsgReportDetailResponse"
 
 
 class EsgHeadquarters(BaseModel):
@@ -18,14 +24,30 @@ class EsgSources(BaseModel):
 
 
 class EsgReportResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    id: int
     title: str
     report_year: int
     cover_image_url: str | None
-    pdf_url: str | None
     landing_page_url: str
     source_url: str
     verification_date: str
+
+
+class EsgReportDetailResponse(BaseModel):
+    id: int
+    company_id: str
+    company_name: str
+    title: str
+    report_year: int
+    summary: str
+    page_count: int | None
+    price_krw: int | None
+    cover_image_url: str | None
+    landing_page_url: str
+    source_url: str
+    verification_date: str
+    purchased: bool = False
+    access_url: str | None = None
 
 
 class EsgCompanyResponse(BaseModel):

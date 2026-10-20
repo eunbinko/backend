@@ -5,7 +5,6 @@ import { getInitialSelection, selectCompany } from '../atlas-state'
 import AtlasThreads from '../components/AtlasThreads.vue'
 import KoreaCompanyMap from '../components/KoreaCompanyMap.vue'
 import ReportCoverRail from '../components/ReportCoverRail.vue'
-import ReportPdfDialog from '../components/ReportPdfDialog.vue'
 
 const companies = ref([])
 const fiscalYear = ref(2025)
@@ -36,11 +35,7 @@ async function loadCompanies() {
     loading.value = false
   }
 }
-function openReport({ company, report, event }) {
-  returnFocus.value = event?.currentTarget || document.activeElement
-  activeReport.value = { company, report }
-}
-function closeReport() { activeReport.value = null }
+function openReport({ report }) { window.history.pushState({}, '', `/reports/${report.id}`); window.dispatchEvent(new PopStateEvent('popstate')) }
 onMounted(loadCompanies)
 </script>
 
@@ -76,6 +71,5 @@ onMounted(loadCompanies)
       </section>
     </template>
     <footer class="atlas-footer"><span>공시 아틀라스</span><span>공시 자료는 각 기업의 공식 출처를 따릅니다.</span></footer>
-    <ReportPdfDialog :company="reportCompany" :report="selectedReport" :return-focus="returnFocus" @close="closeReport" />
   </main>
 </template>

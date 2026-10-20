@@ -12,6 +12,7 @@ class EsgReport(Base):
     company_id: Mapped[str] = mapped_column(ForeignKey("esg_company.company_id", ondelete="CASCADE"), nullable=False, index=True)
     title: Mapped[str] = mapped_column(String(240), nullable=False)
     report_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    page_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     cover_image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     pdf_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     landing_page_url: Mapped[str] = mapped_column(Text, nullable=False)

@@ -19,7 +19,7 @@ function imageFailed(report, companyId) { failedImages.value = new Set([...faile
         <span class="cover-company"><b>{{ String(company.rank).padStart(2, '0') }}</b>{{ company.name }}</span>
       </button>
       <a v-if="company.reports?.[0] && (!company.reports[0].cover_image_url || failedImages.has(company.reports[0].source_url || company.company_id))" class="report-open" :href="company.reports[0].landing_page_url || company.reports[0].source_url" target="_blank" rel="noopener noreferrer">공식 표지 출처 ↗</a>
-      <button v-if="hasOfficialPdf(company.reports?.[0])" class="report-open" type="button" @click="emit('open-report', { company, report: company.reports[0], event: $event })">보고서 읽기 <span aria-hidden="true">↗</span></button>
+      <button v-if="company.reports?.[0]" class="report-open" type="button" :disabled="!company.reports[0].id" @click="emit('open-report', { company, report: company.reports[0], event: $event })">보고서 상세 보기 <span aria-hidden="true">↗</span></button>
       <a v-else-if="getOfficialReportUrl(company.reports?.[0])" class="report-open" :href="getOfficialReportUrl(company.reports?.[0])" target="_blank" rel="noopener noreferrer">공식 보고서 보기 ↗</a>
       <a v-else class="report-open" :href="company.sources?.esg_highlights" target="_blank" rel="noreferrer">출처 보기 ↗</a>
     </article>

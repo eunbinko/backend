@@ -10,7 +10,7 @@ describe('ESG companies API', () => {
     const result = { fiscal_year: 2025, companies: [] }
     axios.get.mockResolvedValue({ data: { code: 200, message: 'ok', result } })
     await expect(fetchEsgCompanies({ fiscalYear: 2025, apiBase: 'http://api.test/' })).resolves.toEqual(result)
-    expect(axios.get).toHaveBeenCalledWith('http://api.test/esg/companies', { params: { fiscal_year: 2025 }, headers: { Accept: 'application/json' } })
+    expect(axios.get).toHaveBeenCalledWith('http://api.test/esg/companies', { params: { fiscal_year: 2025 }, headers: { Accept: 'application/json' }, withCredentials: true })
   })
 
   test('rejects malformed response envelopes with a readable error', async () => {

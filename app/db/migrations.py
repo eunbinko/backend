@@ -27,3 +27,13 @@ def migrate_sqlite_user_email_nullable(engine: Engine) -> None:
         connection.execute(text("DROP TABLE user"))
         connection.execute(text("ALTER TABLE user_new RENAME TO user"))
         connection.execute(text("CREATE UNIQUE INDEX ix_user_email ON user (email)"))
+
+
+def migrate_sqlite_esg_report_page_count(engine: Engine) -> None:
+    if engine.dialect.name != "sqlite" or not inspect(engine).has_table("esg_report"):
+        return
+    columns = {column["name"] for column in inspect(engine).get_columns("esg_report")}
+    if "page_count" in columns:
+        return
+    with engine.begin() as connection:
+        connection.execute(text("ALTER TABLE esg_report ADD COLUMN page_count INTEGER NULL"))

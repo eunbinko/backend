@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:5173"
     FRONTEND_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173"
     KAKAO_STATE_TTL_SECONDS: int = 300
+    PORTONE_STORE_ID: str = ""
+    PORTONE_TOSSPAYMENTS_CHANNEL_KEY: str = ""
+    PORTONE_API_SECRET: str = ""
 
 
 settings = Settings()

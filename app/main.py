@@ -6,9 +6,12 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import sessionmaker
 from starlette.exceptions import HTTPException
 
-from app.api.routers import board, user
+from app.api.routers import board, esg, user
 from app.db.database import Base, engine, get_db
 from app.models.user import User
+from app.models.esg_company import EsgCompany  # noqa: F401
+from app.models.esg_report import EsgReport  # noqa: F401
+from app.services.esg_seed import seed_esg_data
 
 
 def create_app(database_engine=engine):
@@ -18,6 +21,8 @@ def create_app(database_engine=engine):
         # create_all does not add indexes to an existing table.
         for index in User.__table__.indexes:
             index.create(bind=database_engine, checkfirst=True)
+        with sessionmaker(bind=database_engine, autoflush=False)() as session:
+            seed_esg_data(session)
         yield
 
     application = FastAPI(title="회원 API", version="0.1.0", lifespan=lifespan)
@@ -30,6 +35,7 @@ def create_app(database_engine=engine):
     application.dependency_overrides[get_db] = session_dependency
     application.include_router(user.router)
     application.include_router(board.router)
+    application.include_router(esg.router)
 
     @application.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException):

@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { beginKakaoLogin, consumeKakaoError, loadKakaoSdk, shouldShowKakaoLogin } from './kakao-login'
 import EsgAtlasView from './views/EsgAtlasView.vue'
 import ReportDetailView from './views/ReportDetailView.vue'
+import AuthPanel from './components/AuthPanel.vue'
 import { getRoute, shouldLoadBoardList, shouldLoadCurrentUser } from './app-routing'
 
 const apiBase = (import.meta.env.VITE_API_BASE || 'http://localhost:8000').replace(/\/+$/, '')
@@ -211,11 +212,11 @@ onUnmounted(() => { window.removeEventListener('popstate', onPopState); clearTim
   <ReportDetailView v-if="route.page === 'report'" :report-id="route.id" :navigate="navigate" />
   <a class="skip-link" href="#main">본문으로 건너뛰기</a>
   <header v-if="route.page !== 'atlas'" class="topbar">
-    <a class="brand" href="/" aria-label="모아 홈" @click.prevent="navigate('/')">
-      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>모아</span>
+    <a class="brand" href="/" aria-label="공시 아틀라스 홈" @click.prevent="navigate('/')">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>공시 아틀라스</span>
     </a>
     <nav class="top-actions" aria-label="주요 메뉴">
-      <a class="nav-link" href="/" @click.prevent="navigate('/')">기록 모아보기</a>
+      <a class="nav-link" href="/" @click.prevent="navigate('/')">공시 지도</a>
       <a v-if="currentUser" class="account-button" href="/" @click.prevent="navigate('/')"><span class="avatar" aria-hidden="true">{{ currentUser.slice(0, 1) }}</span><span>{{ currentUser }}</span></a>
       <a v-else class="account-button" href="/login" @click.prevent="navigate('/login')"><span class="avatar" aria-hidden="true">나</span><span>로그인</span></a>
     </nav>
@@ -261,15 +262,14 @@ onUnmounted(() => { window.removeEventListener('popstate', onPopState); clearTim
         </div>
 
         <div v-else class="single-layout auth-layout">
-          <section class="form-page auth-page" :aria-labelledby="route.page === 'signup' ? 'signup-title' : 'login-title'"><p class="section-kicker">{{ route.page === 'signup' ? '처음 오셨나요' : '다시 만났네요' }}</p><h2 :id="route.page === 'signup' ? 'signup-title' : 'login-title'">{{ route.page === 'signup' ? '함께 기록해요.' : '기록을 이어가세요.' }}</h2><p class="form-intro">{{ route.page === 'signup' ? '이름과 이메일로 계정을 만들어요.' : '가입한 계정으로 로그인하세요.' }}</p><form class="stack-form" @submit.prevent="submitAuth"><label v-if="route.page === 'signup'" for="account-name">이름</label><input v-if="route.page === 'signup'" id="account-name" v-model="auth.name" name="name" autocomplete="name" required placeholder="이름을 입력하세요" /><label for="account-email">이메일</label><input id="account-email" v-model="auth.email" name="email" type="email" autocomplete="username" spellcheck="false" required placeholder="hello@example.com" /><label for="account-password">비밀번호</label><input id="account-password" v-model="auth.password" name="password" type="password" :autocomplete="route.page === 'login' ? 'current-password' : 'new-password'" minlength="1" maxlength="128" required placeholder="비밀번호를 입력하세요" /><p v-if="error" class="inline-error" role="alert">{{ error }}</p><p v-if="notice" class="inline-notice" role="status">{{ notice }}</p><button class="solid-button" type="submit" :disabled="busy">{{ busy ? '처리 중…' : route.page === 'signup' ? '가입하기' : '로그인' }}</button></form><p class="form-switch">{{ route.page === 'signup' ? '이미 계정이 있나요?' : '아직 계정이 없나요?' }} <a :href="route.page === 'signup' ? '/login' : '/signup'" @click.prevent="navigate(route.page === 'signup' ? '/login' : '/signup')">{{ route.page === 'signup' ? '로그인' : '회원가입' }}</a></p></section>
+          <AuthPanel class="auth-page" :mode="route.page" :model="auth" :busy="busy" :error="error || kakaoError" :notice="notice" @submit="submitAuth" @navigate="navigate" />
         </div>
       </div>
     </Transition>
-    <footer class="page-footer"><span>모아</span><span>생각을 담아두는 곳</span></footer>
+    <footer class="page-footer"><span>공시 아틀라스</span><span>공식 공시를 한곳에서</span></footer>
   </main>
-  <Teleport v-if="shouldShowKakaoLogin(route.page)" to=".auth-page">
+  <Teleport v-if="shouldShowKakaoLogin(route.page)" to=".atlas-auth-social">
     <div class="social-login">
-      <span class="social-divider">또는</span>
       <p v-if="kakaoError" class="inline-error" role="alert">{{ kakaoError }}</p>
       <button class="kakao-button" type="button" :disabled="!kakaoReady || kakaoBusy" @click="startKakaoLogin">
         {{ kakaoBusy ? '카카오 로그인 연결 중…' : '카카오로 로그인' }}

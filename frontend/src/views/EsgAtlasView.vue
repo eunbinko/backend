@@ -5,6 +5,8 @@ import { getInitialSelection, selectCompany } from '../atlas-state'
 import AtlasThreads from '../components/AtlasThreads.vue'
 import KoreaCompanyMap from '../components/KoreaCompanyMap.vue'
 import ReportCoverRail from '../components/ReportCoverRail.vue'
+import AtlasSearch from '../components/AtlasSearch.vue'
+import ReportListCard from '../components/ReportListCard.vue'
 
 const companies = ref([])
 const fiscalYear = ref(2025)
@@ -18,6 +20,7 @@ const returnFocus = ref(null)
 const selectedCompany = computed(() => companies.value.find(({ company_id }) => company_id === selectedCompanyId.value) || null)
 const selectedReport = computed(() => activeReport.value?.report || null)
 const reportCompany = computed(() => activeReport.value?.company || null)
+const searchQuery = ref('')
 
 async function loadCompanies() {
   loading.value = true
@@ -36,18 +39,26 @@ async function loadCompanies() {
   }
 }
 function openReport({ report }) { window.history.pushState({}, '', `/reports/${report.id}`); window.dispatchEvent(new PopStateEvent('popstate')) }
+function searchCompanies(query) {
+  searchQuery.value = query.trim()
+  if (!searchQuery.value) return
+  const match = companies.value.find((company) => `${company.name} ${company.industry} ${company.esg_highlights}`.toLowerCase().includes(searchQuery.value.toLowerCase()))
+  if (match) selectedCompanyId.value = match.company_id
+}
+function openCompanyReport(report) { if (report.id) openReport({ report }) }
 onMounted(loadCompanies)
 </script>
 
 <template>
   <main id="main" class="atlas-page">
     <header class="atlas-masthead">
-      <a class="atlas-brand" href="/" aria-label="공시 아틀라스 홈">공시 아틀라스<span>대한민국 ESG 보고서 지도</span></a>
+      <a class="atlas-brand" href="/" aria-label="공시 아틀라스 홈"><span class="atlas-brand-mark" aria-hidden="true">A</span><b>공시 아틀라스</b><span>대한민국 ESG 보고서 지도</span></a>
       <div class="atlas-edition">{{ fiscalYear }} 회계연도 <span>·</span> 별도 기준 매출 상위 10개사</div>
       <a class="atlas-account" href="/login">로그인 <span aria-hidden="true">↗</span></a>
     </header>
     <section class="atlas-intro" aria-labelledby="atlas-title">
       <div><p class="atlas-kicker">매출로 찾는 지속가능성 공시</p><h1 id="atlas-title">기업의 위치에서<br />공시의 맥락으로.</h1><p class="atlas-lede">대한민국 주요 기업의 본사와 ESG 보고서를 한 장의 지도로 잇습니다.</p></div>
+      <AtlasSearch v-model="searchQuery" @search="searchCompanies" />
       <div class="atlas-count"><strong>{{ String(companies.length).padStart(2, '0') }}</strong><span>기업 기록</span></div>
     </section>
     <div v-if="loading" class="atlas-state" role="status" aria-live="polite">2025년 기업 공시 자료를 불러오고 있습니다…</div>
@@ -70,6 +81,10 @@ onMounted(loadCompanies)
         <a v-if="rankingSource" class="ranking-source" :href="rankingSource" target="_blank" rel="noopener noreferrer">순위 출처 ↗</a>
       </section>
     </template>
+    <section v-if="selectedCompany?.reports?.length" class="related-reports" aria-label="선택 기업의 ESG 공시 보고서">
+      <div class="related-reports__heading"><p class="atlas-kicker">공식 보고서</p><h2>{{ selectedCompany.name }}의 공시</h2></div>
+      <div class="related-reports__list"><ReportListCard v-for="report in selectedCompany.reports" :key="report.id || report.source_url" :report="{ ...report, company_name: selectedCompany.name }" @select="openCompanyReport"><template #meta>{{ report.page_count ? `${report.page_count}쪽` : '요약 보기' }}</template></ReportListCard></div>
+    </section>
     <footer class="atlas-footer"><span>공시 아틀라스</span><span>공시 자료는 각 기업의 공식 출처를 따릅니다.</span></footer>
   </main>
 </template>

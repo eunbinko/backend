@@ -1,5 +1,6 @@
 import axios from 'axios'
+import { resolveApiBaseUrl } from './base-url'
 
-const baseURL = (import.meta.env.VITE_API_BASE || 'https://api.kkoi.kro.kr').replace(/\/+$/, '')
+const baseURL = resolveApiBaseUrl(import.meta.env.VITE_API_BASE)
 
 export const api = axios.create({ baseURL, withCredentials: true })

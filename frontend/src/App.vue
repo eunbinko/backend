@@ -7,7 +7,6 @@ import AuthPanel from './components/AuthPanel.vue'
 import { getRoute, shouldLoadBoardList, shouldLoadCurrentUser } from './app-routing'
 import { api } from './api/client'
 
-const apiBase = (import.meta.env.VITE_API_BASE || 'https://api.kkoi.kro.kr').replace(/\/+$/, '')
 const boards = ref([])
 const selected = ref(null)
 const loading = ref(false)
@@ -24,6 +23,7 @@ const kakaoReady = ref(false)
 const kakaoError = ref('')
 const kakaoBusy = ref(false)
 const kakaoKey = import.meta.env.VITE_KAKAO_JAVASCRIPT_KEY
+const apiBase = api.defaults.baseURL
 const route = ref(readRoute())
 let routeTimer
 

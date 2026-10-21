@@ -13,11 +13,15 @@ describe('Kakao JavaScript login', () => {
     const kakao = { Auth: { authorize: jest.fn() } }
     const requestState = jest.fn().mockResolvedValue({ state: 'signed-random-state' })
 
-    await beginKakaoLogin({ kakao, requestState, apiBase: 'http://localhost:8000' })
+    await beginKakaoLogin({
+      kakao,
+      requestState,
+      apiBase: 'https://api.kkoi.kro.kr/',
+    })
 
     expect(requestState).toHaveBeenCalledTimes(1)
     expect(kakao.Auth.authorize).toHaveBeenCalledWith({
-      redirectUri: 'http://localhost:8000/user/kakao/callback',
+      redirectUri: 'https://api.kkoi.kro.kr/user/kakao/callback',
       scope: 'profile_nickname',
       state: 'signed-random-state',
     })

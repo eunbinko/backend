@@ -58,7 +58,7 @@ npm run dev
 | `PORTONE_TOSSPAYMENTS_CHANNEL_KEY` | PortOne 토스페이먼츠 채널 키 |
 | `PORTONE_API_SECRET` | 결제 검증용 PortOne API Secret |
 
-`frontend/.env.local`에서는 개발 백엔드 주소를 `VITE_API_BASE=http://127.0.0.1:8000`으로 설정하고, `VITE_KAKAO_JAVASCRIPT_KEY`에 카카오 JavaScript 키를 입력합니다. 배포 워크플로는 `https://api.kkoi.kro.kr`을 API 주소로 사용합니다. 결제 설정에는 `VITE_PORTONE_STORE_ID`, `VITE_PORTONE_TOSSPAYMENTS_CHANNEL_KEY`도 필요합니다. 환경 변수를 변경한 뒤에는 해당 개발 서버를 재시작하세요.
+`frontend/.env.local`에서는 개발 백엔드 주소를 `VITE_API_BASE=https://api.kkoi.kro.kr`으로 설정하고, `VITE_KAKAO_JAVASCRIPT_KEY`에 카카오 JavaScript 키를 입력합니다. 배포 워크플로는 `https://api.kkoi.kro.kr`을 API 주소로 사용합니다. 결제 설정에는 `VITE_PORTONE_STORE_ID`, `VITE_PORTONE_TOSSPAYMENTS_CHANNEL_KEY`도 필요합니다. 환경 변수를 변경한 뒤에는 해당 개발 서버를 재시작하세요.
 
 카카오 개발자 콘솔에서 카카오 로그인을 활성화하고 JavaScript SDK 도메인과 위 콜백 URI를 등록해야 합니다. 로그인은 닉네임 정보만 사용하며 카카오 이메일을 요청하지 않습니다. 프론트엔드와 백엔드 주소가 달라지면 CORS 허용 출처와 리다이렉트 설정도 함께 변경하세요.
 

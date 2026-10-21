@@ -40,9 +40,21 @@ def create_app(database_engine=engine):
             yield session
 
     application.dependency_overrides[get_db] = session_dependency
+    configured_origins = [
+        origin.strip()
+        for origin in settings.FRONTEND_ORIGINS.split(",")
+        if origin.strip()
+    ]
+    allowed_origins = list(dict.fromkeys([
+        *configured_origins,
+        settings.FRONTEND_URL.rstrip("/"),
+        "https://www.kkoi.kro.kr",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]))
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=[origin.strip() for origin in settings.FRONTEND_ORIGINS.split(",") if origin.strip()],
+        allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

@@ -61,7 +61,10 @@ def test_login_sets_signed_expiring_httponly_cookie(client, signup_data):
     cookie = response.headers["set-cookie"]
     assert "HttpOnly" in cookie
     assert "SameSite=lax" in cookie
-    assert "Domain=kkoi.kro.kr" not in cookie
+    if settings.COOKIE_DOMAIN:
+        assert f"Domain={settings.COOKIE_DOMAIN}" in cookie
+    else:
+        assert "Domain=" not in cookie
     assert "Max-Age=1800" in cookie
     claims = jwt.decode(response.cookies["EN_AT"], settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     assert claims["sub"] == "1"
@@ -94,7 +97,10 @@ def test_current_user_restores_session_and_logout_clears_cookie(client, signup_d
     assert logout.status_code == 200
     assert "Max-Age=0" in logout.headers["set-cookie"]
     assert "Path=/" in logout.headers["set-cookie"]
-    assert "Domain=kkoi.kro.kr" not in logout.headers["set-cookie"]
+    if settings.COOKIE_DOMAIN:
+        assert f"Domain={settings.COOKIE_DOMAIN}" in logout.headers["set-cookie"]
+    else:
+        assert "Domain=" not in logout.headers["set-cookie"]
     assert client.get("/user/me").json()["result"] is None
 
 
@@ -104,17 +110,37 @@ def test_current_user_rejects_missing_or_invalid_cookie(client):
     assert client.get("/user/me").json()["result"] is None
 
 
-def test_frontend_origin_can_call_api_with_credentials(client):
+@pytest.mark.parametrize("origin", [
+    "http://localhost:5173",
+    "https://www.kkoi.kro.kr",
+])
+def test_frontend_origin_can_call_api_with_credentials(client, origin):
     response = client.options(
         "/user/login",
         headers={
-            "Origin": "http://localhost:5173",
+            "Origin": origin,
             "Access-Control-Request-Method": "POST",
             "Access-Control-Request-Headers": "content-type",
         },
     )
     assert response.status_code == 200
-    assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+    assert response.headers["access-control-allow-origin"] == origin
+    assert response.headers["access-control-allow-credentials"] == "true"
+
+
+def test_production_frontend_origin_is_allowed_when_env_only_lists_local(database_engine, monkeypatch):
+    monkeypatch.setattr(settings, "FRONTEND_ORIGINS", "http://localhost:5173")
+    with TestClient(create_app(database_engine)) as production_client:
+        response = production_client.options(
+            "/user/signup",
+            headers={
+                "Origin": "https://www.kkoi.kro.kr",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "content-type",
+            },
+        )
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "https://www.kkoi.kro.kr"
     assert response.headers["access-control-allow-credentials"] == "true"
 
 

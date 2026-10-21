@@ -12,7 +12,7 @@ npm install
 npm run dev
 ```
 
-Vue는 Axios와 Fetch를 통해 FastAPI에 직접 요청합니다. 개발 기본 API 주소는 `http://127.0.0.1:8000`이고, 배포 빌드는 `https://api.kkoi.kro.kr`을 사용합니다. 개발 환경에서는 `frontend/.env.local`의 `VITE_API_BASE`로 주소를 바꿀 수 있습니다. 백엔드는 브라우저 쿠키 요청을 허용하도록 프론트 출처를 CORS에 등록해야 합니다.
+Vue는 Axios와 Fetch를 통해 FastAPI에 직접 요청합니다. 개발 기본 API 주소는 `https://api.kkoi.kro.kr`이고, 배포 빌드는 `https://api.kkoi.kro.kr`을 사용합니다. 개발 환경에서는 `frontend/.env.local`의 `VITE_API_BASE`로 주소를 바꿀 수 있습니다. 백엔드는 브라우저 쿠키 요청을 허용하도록 프론트 출처를 CORS에 등록해야 합니다.
 
 ## 연결된 API
 
@@ -36,13 +36,13 @@ Set local-only values in the repository root `.env` using `.env.example` as a gu
 - `FRONTEND_URL=http://localhost:5173`
 - `FRONTEND_ORIGINS=http://localhost:5173,http://127.0.0.1:5173`
 
-Set `VITE_API_BASE=http://127.0.0.1:8000` and `VITE_KAKAO_JAVASCRIPT_KEY` in `frontend/.env.local` using `frontend/.env.example`. Restart Vite after changing this file. Do not commit either local environment file.
+Set `VITE_API_BASE=https://api.kkoi.kro.kr` and `VITE_KAKAO_JAVASCRIPT_KEY` in `frontend/.env.local` using `frontend/.env.example`. Restart Vite after changing this file. Do not commit either local environment file.
 
 The Kakao Developers app must have Kakao Login enabled, `http://localhost:5173` registered as a JavaScript SDK domain, and `http://localhost:8000/user/kakao/callback` registered as the redirect URI for the JavaScript and REST keys. Enable nickname consent; leave email without permission. The callback finishes at the Vue frontend using `FRONTEND_URL`.
 
 ## Nginx deployment
 
-Vue API requests go directly to the backend origin. The deployment workflow builds with `VITE_API_BASE=https://api.kkoi.kro.kr`; local development uses `http://127.0.0.1:8000`. Since the origins differ, configure backend CORS to allow the frontend origin with credentials.
+Vue API requests go directly to the backend origin. The deployment workflow builds with `VITE_API_BASE=https://api.kkoi.kro.kr`; all browser builds use `https://api.kkoi.kro.kr`. Since the origins differ, configure backend CORS to allow the frontend origin with credentials.
 
 1. Build the frontend with `VITE_API_BASE=https://api.kkoi.kro.kr`:
 

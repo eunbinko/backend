@@ -40,7 +40,7 @@ npm run dev
 
 ## 환경 변수
 
-저장소 루트의 `.env.example`을 참고해 `.env`를 만들고, `frontend/.env.example`을 참고해 `frontend/.env.local`을 만듭니다. 실제 키와 비밀값이 든 환경 파일은 커밋하지 마세요.
+저장소 루트의 `.env.example`을 참고해 `.env`를 만들고, `frontend/.env.example`을 참고해 `frontend/.env.local`을 만듭니다.
 
 루트 `.env`에서 사용하는 값:
 

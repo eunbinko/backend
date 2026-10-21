@@ -5,8 +5,9 @@ import EsgAtlasView from './views/EsgAtlasView.vue'
 import ReportDetailView from './views/ReportDetailView.vue'
 import AuthPanel from './components/AuthPanel.vue'
 import { getRoute, shouldLoadBoardList, shouldLoadCurrentUser } from './app-routing'
+import { api } from './api/client'
 
-const apiBase = (import.meta.env.VITE_API_BASE || 'http://localhost:8000').replace(/\/+$/, '')
+const apiBase = (import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000').replace(/\/+$/, '')
 const boards = ref([])
 const selected = ref(null)
 const loading = ref(false)
@@ -70,18 +71,16 @@ function explainError(data, status) {
 }
 
 async function request(path, payload) {
-  const response = await fetch(`${apiBase}${path}`, {
-    method: payload === undefined ? 'GET' : 'POST',
-    credentials: 'include',
-    headers: payload === undefined ? { Accept: 'application/json' } : { Accept: 'application/json', 'Content-Type': 'application/json' },
-    ...(payload === undefined ? {} : { body: JSON.stringify(payload) }),
-  })
-  let data
-  try { data = await response.json() } catch { throw new Error('서버 응답을 읽지 못했습니다. API 주소를 확인하세요.') }
-  if (!response.ok) throw new Error(explainError(data, response.status))
-  return data
+  try {
+    const response = payload === undefined
+      ? await api.get(path, { headers: { Accept: 'application/json' } })
+      : await api.post(path, payload, { headers: { Accept: 'application/json' } })
+    return response.data
+  } catch (cause) {
+    if (cause.response) throw new Error(explainError(cause.response.data, cause.response.status))
+    throw new Error('백엔드 서버에 연결하지 못했습니다. 백엔드 실행 상태를 확인하세요.')
+  }
 }
-
 async function loadBoards() {
   loading.value = true
   error.value = ''
@@ -147,12 +146,8 @@ async function startKakaoLogin() {
       kakao: kakaoSdk.value,
       apiBase,
       requestState: async () => {
-        const response = await fetch(`${apiBase}/user/kakao/state`, {
-          method: 'POST', credentials: 'include', headers: { Accept: 'application/json' },
-        })
-        const data = await response.json()
-        if (!response.ok) throw new Error('Kakao login could not be started')
-        return data.result
+        const response = await api.post('/user/kakao/state', {}, { headers: { Accept: 'application/json' } })
+        return response.data.result
       },
     })
   } catch {

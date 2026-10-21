@@ -36,7 +36,7 @@ npm install
 npm run dev
 ```
 
-프론트엔드는 `http://localhost:5173`, 백엔드는 `http://localhost:8000`에서 실행됩니다. FastAPI 문서는 `http://localhost:8000/docs`에서 확인할 수 있습니다. 백엔드 시작 시 테이블을 준비하고 ESG 기업 데이터를 데이터베이스에 반영합니다.
+프론트엔드는 `http://localhost:5173`, 백엔드는 `http://127.0.0.1:8000`에서 실행됩니다. FastAPI 문서는 `http://127.0.0.1:8000/docs`에서 확인할 수 있습니다. 백엔드 시작 시 테이블을 준비하고 ESG 기업 데이터를 데이터베이스에 반영합니다.
 
 ## 환경 변수
 
@@ -58,7 +58,7 @@ npm run dev
 | `PORTONE_TOSSPAYMENTS_CHANNEL_KEY` | PortOne 토스페이먼츠 채널 키 |
 | `PORTONE_API_SECRET` | 결제 검증용 PortOne API Secret |
 
-`frontend/.env.local`에서는 `VITE_API_BASE`에 백엔드 주소를, `VITE_KAKAO_JAVASCRIPT_KEY`에 카카오 JavaScript 키를 설정합니다. 결제를 사용하려면 `VITE_PORTONE_STORE_ID`, `VITE_PORTONE_TOSSPAYMENTS_CHANNEL_KEY`도 설정해야 합니다. 환경 변수를 변경한 뒤에는 해당 개발 서버를 재시작하세요.
+`frontend/.env.local`에서는 개발 백엔드 주소를 `VITE_API_BASE=http://127.0.0.1:8000`으로 설정하고, `VITE_KAKAO_JAVASCRIPT_KEY`에 카카오 JavaScript 키를 입력합니다. 배포 워크플로는 `https://api.kkoi.kro.kr`을 API 주소로 사용합니다. 결제 설정에는 `VITE_PORTONE_STORE_ID`, `VITE_PORTONE_TOSSPAYMENTS_CHANNEL_KEY`도 필요합니다. 환경 변수를 변경한 뒤에는 해당 개발 서버를 재시작하세요.
 
 카카오 개발자 콘솔에서 카카오 로그인을 활성화하고 JavaScript SDK 도메인과 위 콜백 URI를 등록해야 합니다. 로그인은 닉네임 정보만 사용하며 카카오 이메일을 요청하지 않습니다. 프론트엔드와 백엔드 주소가 달라지면 CORS 허용 출처와 리다이렉트 설정도 함께 변경하세요.
 
@@ -101,3 +101,21 @@ npm test
 cd frontend
 npm run build
 ```
+
+## GitHub Actions 배포
+
+`app/**` 또는 `requirements.txt`가 `main`에 반영되면 백엔드 워크플로가 실행되고, `frontend/**`가 반영되면 프론트엔드 워크플로가 실행됩니다. 두 워크플로는 `.github/workflows`에 있으며 `workflow_dispatch`로 수동 실행할 수도 있습니다.
+
+저장소의 **Settings → Secrets and variables → Actions → New repository secret**에서 다음 값을 등록하세요.
+
+| Secret | 값 |
+| --- | --- |
+| `SSH_HOST` | 서버 주소 (예: `222.112.208.68`) |
+| `SSH_USERNAME` | SSH 계정 |
+| `SSH_PASSWORD` | SSH 비밀번호 |
+| `BACKEND_DEPLOY_PATH` | 서버의 백엔드 배포 디렉터리 (예: `/opt/disclosure-atlas/backend`) |
+| `FRONTEND_DEPLOY_PATH` | 서버의 프론트엔드 배포 디렉터리 (예: `/opt/disclosure-atlas/frontend`) |
+| `BACKEND_SSH_PORT` | 백엔드 SSH 접속 포트. 생략 시 `9105` |
+| `FRONTEND_SSH_PORT` | 프론트엔드 SSH 접속 포트. 생략 시 `9005` |
+
+두 SSH 포트 Secret은 별도로 둘 수 있으며, 같은 SSH 포트를 사용한다면 두 Secret에 같은 값을 입력하세요. 서버에는 Python 3, Node.js/npm, SSH 접속 권한이 필요합니다. SSH 계정은 배포 디렉터리를 생성하고 쓸 수 있어야 하며, 서버 방화벽은 SSH 포트와 서비스 포트 `9105`(백엔드), `9005`(프론트엔드)의 접근을 허용해야 합니다. 각 워크플로는 해당 디렉터리의 `.venv`/`node_modules`를 사용하고 프로세스 PID 파일과 로그 파일을 유지하며 서비스를 재시작합니다. 서버의 `.env`와 SQLite DB는 배포 경로에 별도로 준비하세요.

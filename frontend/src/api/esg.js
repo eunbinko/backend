@@ -1,13 +1,10 @@
-import axios from 'axios'
+import { api } from './client'
 
-const defaultApiBase = 'http://localhost:8000'
-
-export async function fetchEsgCompanies({ fiscalYear = 2025, apiBase: baseUrl = globalThis.__ESG_API_BASE__ || defaultApiBase } = {}) {
+export async function fetchEsgCompanies({ fiscalYear = 2025 } = {}) {
   try {
-    const response = await axios.get(`${baseUrl.replace(/\/+$/, '')}/esg/companies`, {
+    const response = await api.get('/esg/companies', {
       params: { fiscal_year: fiscalYear },
       headers: { Accept: 'application/json' },
-      withCredentials: true,
     })
     const result = response.data?.result
     if (!result || !Array.isArray(result.companies) || !Number.isInteger(result.fiscal_year)) {
@@ -21,9 +18,7 @@ export async function fetchEsgCompanies({ fiscalYear = 2025, apiBase: baseUrl = 
   }
 }
 
-export async function fetchEsgReport(reportId, { apiBase: baseUrl = globalThis.__ESG_API_BASE__ || defaultApiBase } = {}) {
-  const response = await axios.get(`${baseUrl.replace(/\/+$/, '')}/esg/reports/${encodeURIComponent(reportId)}`, {
-    headers: { Accept: 'application/json' }, withCredentials: true,
-  })
+export async function fetchEsgReport(reportId) {
+  const response = await api.get(`/esg/reports/${encodeURIComponent(reportId)}`, { headers: { Accept: 'application/json' } })
   return response.data?.result
 }

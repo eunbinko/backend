@@ -21,6 +21,7 @@ def set_login_cookie(response: Response, user: User) -> None:
     response.set_cookie(
         "EN_AT", createToken(str(user.idx)), httponly=True,
         secure=settings.COOKIE_SECURE, samesite="lax", max_age=1800,
+        domain=settings.COOKIE_DOMAIN,
     )
 
 
@@ -70,6 +71,7 @@ def current_user(request: Request, db: Session = Depends(get_db)):
 def logout(response: Response):
     response.delete_cookie(
         "EN_AT", httponly=True, secure=settings.COOKIE_SECURE, samesite="lax", path="/",
+        domain=settings.COOKIE_DOMAIN,
     )
     return {"code": 200, "message": "로그아웃되었습니다.", "result": None}
 
@@ -80,6 +82,7 @@ def kakao_state(response: Response):
     response.set_cookie(
         STATE_COOKIE, sign_state(state), max_age=settings.KAKAO_STATE_TTL_SECONDS,
         httponly=True, secure=settings.COOKIE_SECURE, samesite="lax", path=_KAKAO_CALLBACK_PATH,
+        domain=settings.COOKIE_DOMAIN,
     )
     return {"code": 200, "message": "Kakao login state created", "result": {"state": state}}
 
@@ -92,7 +95,8 @@ def kakao_callback(
     frontend_url = settings.FRONTEND_URL.rstrip("/")
     failure = RedirectResponse(f"{frontend_url}/login?social_error=kakao", status_code=302)
     failure.delete_cookie(
-        STATE_COOKIE, path=_KAKAO_CALLBACK_PATH, secure=settings.COOKIE_SECURE, samesite="lax"
+        STATE_COOKIE, path=_KAKAO_CALLBACK_PATH, secure=settings.COOKIE_SECURE, samesite="lax",
+        domain=settings.COOKIE_DOMAIN,
     )
     if error or not code or not validate_state(request.cookies.get(STATE_COOKIE), state):
         return failure
@@ -106,7 +110,8 @@ def kakao_callback(
 
     response = RedirectResponse(f"{frontend_url}/", status_code=302)
     response.delete_cookie(
-        STATE_COOKIE, path=_KAKAO_CALLBACK_PATH, secure=settings.COOKIE_SECURE, samesite="lax"
+        STATE_COOKIE, path=_KAKAO_CALLBACK_PATH, secure=settings.COOKIE_SECURE, samesite="lax",
+        domain=settings.COOKIE_DOMAIN,
     )
     set_login_cookie(response, user)
     return response

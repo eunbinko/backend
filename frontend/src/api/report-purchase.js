@@ -1,13 +1,11 @@
-import axios from 'axios'
-
-const apiBase = (import.meta.env.VITE_API_BASE || 'http://localhost:8000').replace(/\/+$/, '')
+import { api } from './client'
 
 export async function createReportOrder(reportId) {
-  const response = await axios.post(`${apiBase}/esg/reports/${encodeURIComponent(reportId)}/orders`, {}, { withCredentials: true })
+  const response = await api.post(`/esg/reports/${encodeURIComponent(reportId)}/orders`, {})
   return response.data?.result
 }
 
 export async function completeReportOrder(paymentId) {
-  const response = await axios.post(`${apiBase}/esg/orders/${encodeURIComponent(paymentId)}/complete`, {}, { withCredentials: true })
+  const response = await api.post(`/esg/orders/${encodeURIComponent(paymentId)}/complete`, {})
   return response.data?.result
 }

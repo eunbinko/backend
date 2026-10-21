@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     DATABASE_URL: str = "sqlite:///db.sqlite"
     COOKIE_SECURE: bool = False
+    COOKIE_DOMAIN: str = ""
     KAKAO_REST_API_KEY: str = ""
     KAKAO_CLIENT_SECRET: str = ""
     KAKAO_REDIRECT_URI: str = "http://localhost:8000/user/kakao/callback"

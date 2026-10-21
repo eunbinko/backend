@@ -12,7 +12,7 @@ npm install
 npm run dev
 ```
 
-Vue는 FastAPI에 직접 요청합니다. `frontend/.env.local`에 `VITE_API_BASE=http://localhost:8000`을 설정하고, 백엔드는 `FRONTEND_ORIGINS=http://localhost:5173`에 지정된 프론트 출처의 쿠키 요청을 허용해야 합니다. API 주소나 개발 출처를 바꾸면 두 설정을 함께 수정하세요. 직접 브라우저 요청에는 자격 증명을 포함하며, 배포에서는 HTTPS와 허용 출처를 배포 주소로 설정하세요.
+Vue는 Axios와 Fetch를 통해 FastAPI에 직접 요청합니다. 개발 기본 API 주소는 `http://127.0.0.1:8000`이고, 배포 빌드는 `https://api.kkoi.kro.kr`을 사용합니다. 개발 환경에서는 `frontend/.env.local`의 `VITE_API_BASE`로 주소를 바꿀 수 있습니다. 백엔드는 브라우저 쿠키 요청을 허용하도록 프론트 출처를 CORS에 등록해야 합니다.
 
 ## 연결된 API
 
@@ -36,6 +36,25 @@ Set local-only values in the repository root `.env` using `.env.example` as a gu
 - `FRONTEND_URL=http://localhost:5173`
 - `FRONTEND_ORIGINS=http://localhost:5173,http://127.0.0.1:5173`
 
-Set `VITE_API_BASE=http://localhost:8000` and `VITE_KAKAO_JAVASCRIPT_KEY` in `frontend/.env.local` using `frontend/.env.example`. Restart Vite after changing this file. Do not commit either local environment file.
+Set `VITE_API_BASE=http://127.0.0.1:8000` and `VITE_KAKAO_JAVASCRIPT_KEY` in `frontend/.env.local` using `frontend/.env.example`. Restart Vite after changing this file. Do not commit either local environment file.
 
 The Kakao Developers app must have Kakao Login enabled, `http://localhost:5173` registered as a JavaScript SDK domain, and `http://localhost:8000/user/kakao/callback` registered as the redirect URI for the JavaScript and REST keys. Enable nickname consent; leave email without permission. The callback finishes at the Vue frontend using `FRONTEND_URL`.
+
+## Nginx deployment
+
+Vue API requests go directly to the backend origin. The deployment workflow builds with `VITE_API_BASE=https://api.kkoi.kro.kr`; local development uses `http://127.0.0.1:8000`. Since the origins differ, configure backend CORS to allow the frontend origin with credentials.
+
+1. Build the frontend with `VITE_API_BASE=https://api.kkoi.kro.kr`:
+
+   ```powershell
+   cd frontend
+   npm install
+   npm run build
+   ```
+
+2. Copy the contents of `frontend/dist` to the Nginx document root, such as `/usr/share/nginx/html`.
+3. Copy `nginx.conf.example` into the Nginx site configuration (or merge its `server` block into the existing site), then validate and reload Nginx with `nginx -t` and `nginx -s reload`.
+
+The example listens on port 80 for `www.kkoi.kro.kr` and serves Vue routes through `index.html`. Configure HTTPS certificates for the frontend hostname in Nginx for production. The frontend and backend run independently; the frontend host does not proxy API requests.
+
+Set backend `COOKIE_DOMAIN=kkoi.kro.kr` and `COOKIE_SECURE=true` in production. The backend must allow `https://www.kkoi.kro.kr` in `FRONTEND_ORIGINS` with credentials enabled. For local development, allow `http://127.0.0.1:5173` and `http://localhost:5173`. Set backend `FRONTEND_URL=https://www.kkoi.kro.kr` and `KAKAO_REDIRECT_URI=https://api.kkoi.kro.kr/user/kakao/callback`, then register that callback URL with Kakao. Both production sites must use HTTPS for secure cookies.

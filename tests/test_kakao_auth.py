@@ -21,6 +21,7 @@ def test_state_endpoint_sets_signed_http_only_cookie(client):
     assert "HttpOnly" in cookie and "SameSite=lax" in cookie
     assert f"Max-Age={settings.KAKAO_STATE_TTL_SECONDS}" in cookie
     assert "Path=/user/kakao/callback" in cookie
+    assert "Domain=kkoi.kro.kr" in cookie
 
 
 def test_callback_rejects_invalid_state_without_provider_call(client, monkeypatch):

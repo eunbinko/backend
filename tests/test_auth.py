@@ -61,10 +61,24 @@ def test_login_sets_signed_expiring_httponly_cookie(client, signup_data):
     cookie = response.headers["set-cookie"]
     assert "HttpOnly" in cookie
     assert "SameSite=lax" in cookie
+    assert "Domain=kkoi.kro.kr" not in cookie
     assert "Max-Age=1800" in cookie
     claims = jwt.decode(response.cookies["EN_AT"], settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     assert claims["sub"] == "1"
     assert claims["exp"] - claims["iat"] == 1800
+
+
+def test_local_login_cookie_is_accepted_by_local_frontend(client, signup_data, monkeypatch):
+    monkeypatch.setattr(settings, "COOKIE_DOMAIN", "")
+    monkeypatch.setattr(settings, "COOKIE_SECURE", False)
+    client.post("/user/signup", json=signup_data)
+
+    response = client.post("/user/login", json=signup_data)
+
+    assert response.status_code == 200
+    assert "Domain=" not in response.headers["set-cookie"]
+    assert "Secure" not in response.headers["set-cookie"]
+    assert client.get("/user/me").json()["result"]["email"] == signup_data["email"]
 
 
 def test_current_user_restores_session_and_logout_clears_cookie(client, signup_data):
@@ -80,6 +94,7 @@ def test_current_user_restores_session_and_logout_clears_cookie(client, signup_d
     assert logout.status_code == 200
     assert "Max-Age=0" in logout.headers["set-cookie"]
     assert "Path=/" in logout.headers["set-cookie"]
+    assert "Domain=kkoi.kro.kr" not in logout.headers["set-cookie"]
     assert client.get("/user/me").json()["result"] is None
 
 

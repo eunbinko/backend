@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { fetchEsgReport } from '../api/esg'
 import { completeReportOrder, createReportOrder } from '../api/report-purchase'
 import { requestReportPayment } from '../portone-payment'
+import { api } from '../api/client'
 
 const props = defineProps({ reportId: { type: Number, required: true }, navigate: { type: Function, required: true } })
 const report = ref(null)
@@ -13,9 +14,8 @@ const currentUser = ref(null)
 
 async function loadCurrentUser() {
   try {
-    const base = (import.meta.env.VITE_API_BASE || 'http://localhost:8000').replace(/\/+$/, '')
-    const response = await fetch(`${base}/user/me`, { credentials: 'include', headers: { Accept: 'application/json' } })
-    currentUser.value = (await response.json())?.result || null
+    const response = await api.get('/user/me', { headers: { Accept: 'application/json' } })
+    currentUser.value = response.data?.result || null
   } catch { currentUser.value = null }
 }
 

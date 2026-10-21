@@ -7,7 +7,7 @@ import AuthPanel from './components/AuthPanel.vue'
 import { getRoute, shouldLoadBoardList, shouldLoadCurrentUser } from './app-routing'
 import { api } from './api/client'
 
-const apiBase = (import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000').replace(/\/+$/, '')
+const apiBase = (import.meta.env.VITE_API_BASE || 'https://api.kkoi.kro.kr').replace(/\/+$/, '')
 const boards = ref([])
 const selected = ref(null)
 const loading = ref(false)

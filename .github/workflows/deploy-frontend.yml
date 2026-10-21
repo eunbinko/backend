@@ -38,6 +38,8 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
+        env:
+          VITE_API_BASE: https://api.kkoi.kro.kr
         run: |
           npm ci
           npm run build

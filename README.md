@@ -1,51 +1,103 @@
-# 회원가입·로그인 애플리케이션
+# ESG 공시 지도
 
-FastAPI와 SQLite를 사용하는 백엔드와 Vue 기반 프론트엔드 프로젝트입니다.
+국내 주요 기업의 ESG 공시와 기업 정보를 지도에서 살펴보고, 보고서 상세 정보와 구매 기능을 이용할 수 있는 웹 애플리케이션입니다. Vue 3 프론트엔드와 FastAPI 백엔드로 구성되어 있으며 SQLite에 계정, 기업, 보고서, 주문 데이터를 저장합니다.
 
-## 실행
+## 주요 기능
+
+- 2025 회계연도 매출 기준 기업 목록과 본사 위치를 지도에서 확인
+- 기업별 ESG 핵심 정보와 공시 출처 및 검증일 확인
+- ESG 보고서 상세 정보와 페이지 수 기반 가격 확인
+- 회원 가입, 이메일 로그인, 로그아웃 및 카카오 로그인
+- PortOne 결제를 통한 보고서 주문 및 구매 후 접근
+- 기존 게시판 글 목록, 상세 조회, 등록
+
+## 기술 스택
+
+- 프론트엔드: Vue 3, Vite, Leaflet
+- 백엔드: Python, FastAPI, SQLAlchemy
+- 데이터베이스: SQLite (기본 파일 `db.sqlite`)
+- 인증: HttpOnly 쿠키, JWT, 카카오 OAuth
+- 결제: PortOne Browser SDK
+
+## 로컬 실행
+
+Python 의존성을 설치하고 저장소 루트에서 백엔드를 실행합니다.
 
 ```powershell
 python -m pip install -r requirements.txt
 python -m uvicorn app.main:app --reload
 ```
 
-기본 DB는 실행 디렉터리의 `db.sqlite`이며 앱 시작 시 테이블과 이메일 고유 인덱스를 생성합니다.
-API 문서는 `/docs`에서 확인할 수 있습니다.
-
-`.env`에서 `DATABASE_URL`, `SECRET_KEY`, `COOKIE_SECURE`를 설정할 수 있습니다.
-지속적인 토큰 검증과 여러 프로세스 사용 시 동일한 32바이트 이상의 무작위 `SECRET_KEY`를 설정하세요.
-미설정 시 프로세스마다 임시 키를 생성합니다. HTTPS 환경에서는 `COOKIE_SECURE=true`를 사용하세요.
-
-## API
-
-- `POST /user/signup`: `email`, `password`, `name`을 받아 201 반환
-- `POST /user/login`: `email`, `password`를 받아 200 반환, 30분 유효한 JWT를 `EN_AT` HttpOnly 쿠키로 발급
-- 성공 응답: `{"code": 201, "result": {"email": "member@example.com", "name": "회원"}}`
-- 오류 응답: `{"code": 409, "result": "이미 가입한 이메일입니다."}`
-- 이메일 중복은 409, 로그인 정보 불일치는 401, 잘못된 입력은 422
-
-명세의 `passord`는 `password`로 해석했습니다. 이메일은 앞뒤 공백 제거 및 소문자 변환,
-이름은 앞뒤 공백 제거를 적용합니다. 비밀번호는 1~128자이며 입력 그대로 해시합니다.
-비밀번호는 PBKDF2-SHA256(600,000회, 사용자별 무작위 salt)으로 저장하며 응답에 포함하지 않습니다.
-
-기존 평문 비밀번호 계정은 보안상 로그인되지 않습니다. 기존 데이터의 자동 변환이나 삭제는 수행하지 않습니다.
-기존 DB에 중복 이메일이 있으면 고유 인덱스 생성이 실패하므로 데이터를 정리한 후 실행해야 합니다.
-Vue 프론트엔드는 `frontend`에 있으며, 개발 서버 실행 방법은 [frontend/README.md](frontend/README.md)를 참고하세요.
-
-## 검증
-
-```powershell
-python -m pytest -q
-```
-
-각 테스트는 임시 SQLite DB를 사용하므로 기존 `db.sqlite`를 수정하지 않습니다.
-가입·로그인 성공, 실패, 입력 검증, 해시 저장, JWT·쿠키, 중복 가입 경쟁,
-앱 재시작 후 데이터 유지, 기존 게시판 API를 검증합니다.
-
-## 프론트엔드
+별도 터미널에서 프론트엔드를 실행합니다.
 
 ```powershell
 cd frontend
 npm install
 npm run dev
+```
+
+프론트엔드는 `http://localhost:5173`, 백엔드는 `http://localhost:8000`에서 실행됩니다. FastAPI 문서는 `http://localhost:8000/docs`에서 확인할 수 있습니다. 백엔드 시작 시 테이블을 준비하고 ESG 기업 데이터를 데이터베이스에 반영합니다.
+
+## 환경 변수
+
+저장소 루트의 `.env.example`을 참고해 `.env`를 만들고, `frontend/.env.example`을 참고해 `frontend/.env.local`을 만듭니다. 실제 키와 비밀값이 든 환경 파일은 커밋하지 마세요.
+
+루트 `.env`에서 사용하는 값:
+
+| 변수 | 설명 |
+| --- | --- |
+| `SECRET_KEY` | JWT 서명 키. 운영 환경에서는 충분히 긴 무작위 값을 지정합니다. |
+| `DATABASE_URL` | SQLite 연결 문자열. 기본값은 `sqlite:///db.sqlite`입니다. |
+| `COOKIE_SECURE` | HTTPS 운영 환경에서 `true`로 설정합니다. |
+| `FRONTEND_URL` | 카카오 로그인 완료 후 이동할 프론트엔드 주소 |
+| `FRONTEND_ORIGINS` | 쿠키 요청을 허용할 프론트엔드 출처 목록(쉼표 구분) |
+| `KAKAO_REST_API_KEY` | 카카오 앱의 REST API 키 |
+| `KAKAO_CLIENT_SECRET` | 카카오 앱에서 Client Secret을 활성화한 경우 사용 |
+| `KAKAO_REDIRECT_URI` | 카카오 로그인 콜백 주소 |
+| `PORTONE_STORE_ID` | PortOne 상점 식별자 |
+| `PORTONE_TOSSPAYMENTS_CHANNEL_KEY` | PortOne 토스페이먼츠 채널 키 |
+| `PORTONE_API_SECRET` | 결제 검증용 PortOne API Secret |
+
+`frontend/.env.local`에서는 `VITE_API_BASE`에 백엔드 주소를, `VITE_KAKAO_JAVASCRIPT_KEY`에 카카오 JavaScript 키를 설정합니다. 결제를 사용하려면 `VITE_PORTONE_STORE_ID`, `VITE_PORTONE_TOSSPAYMENTS_CHANNEL_KEY`도 설정해야 합니다. 환경 변수를 변경한 뒤에는 해당 개발 서버를 재시작하세요.
+
+카카오 개발자 콘솔에서 카카오 로그인을 활성화하고 JavaScript SDK 도메인과 위 콜백 URI를 등록해야 합니다. 로그인은 닉네임 정보만 사용하며 카카오 이메일을 요청하지 않습니다. 프론트엔드와 백엔드 주소가 달라지면 CORS 허용 출처와 리다이렉트 설정도 함께 변경하세요.
+
+## 주요 API
+
+| 메서드 | 경로 | 설명 |
+| --- | --- | --- |
+| `GET` | `/esg/companies?fiscal_year=2025` | ESG 기업 및 보고서 목록 |
+| `GET` | `/esg/reports/{report_id}` | 보고서 상세 정보와 구매 여부 |
+| `POST` | `/esg/reports/{report_id}/orders` | 로그인 사용자의 보고서 주문 생성 |
+| `POST` | `/esg/orders/{payment_id}/complete` | 결제 결과 검증 및 주문 완료 |
+| `POST` | `/user/signup` | 이메일 회원 가입 |
+| `POST` | `/user/login` | 이메일 로그인 및 `EN_AT` 쿠키 발급 |
+| `GET` | `/user/me` | 현재 로그인 사용자 조회 |
+| `POST` | `/user/logout` | 로그아웃 및 쿠키 삭제 |
+| `POST` | `/user/kakao/state` | 카카오 로그인 CSRF 상태값 생성 |
+| `GET` | `/user/kakao/callback` | 카카오 로그인 콜백 |
+| `GET` | `/board` | 게시글 목록 |
+| `GET` | `/board/read/{idx}` | 게시글 상세 |
+| `POST` | `/board/register` | 게시글 등록 |
+
+## 검증
+
+백엔드 테스트:
+
+```powershell
+python -m pytest -q
+```
+
+프론트엔드 테스트:
+
+```powershell
+cd frontend
+npm test
+```
+
+프론트엔드 프로덕션 빌드:
+
+```powershell
+cd frontend
+npm run build
 ```

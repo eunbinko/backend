@@ -12,4 +12,3 @@ jobs:
     steps:
       - name: Check workflow
         run: echo "GitHub Actions is working!" # 서버로 뭐하기
-ㅊ

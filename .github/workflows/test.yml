@@ -1,0 +1,15 @@
+name: Push Test
+
+on:
+  push:
+    branches:
+      - main #메인브랜치에 푸시하면 동작하게
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check workflow
+        run: echo "GitHub Actions is working!" # 서버로 뭐하기
+ㅊ

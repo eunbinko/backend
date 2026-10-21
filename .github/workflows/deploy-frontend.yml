@@ -47,8 +47,8 @@ jobs:
       - name: Upload built files to server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.DEPLOY_FRONTEND_HOST }}
-          port: ${{ secrets.DEPLOY_FRONTEND_PORT }}
+          host: 222.112.208.68
+          port: "9005"
           username: ${{ secrets.DEPLOY_FRONTEND_USER }}
           password: ${{ secrets.DEPLOY_FRONTEND_PASSWORD }}
           source: "frontend/dist/**,scripts/deploy/deploy-frontend.ps1"
@@ -57,8 +57,8 @@ jobs:
       - name: Publish to Nginx html folder
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.DEPLOY_FRONTEND_HOST }}
-          port: ${{ secrets.DEPLOY_FRONTEND_PORT }}
+          host: 222.112.208.68
+          port: "9005"
           username: ${{ secrets.DEPLOY_FRONTEND_USER }}
           password: ${{ secrets.DEPLOY_FRONTEND_PASSWORD }}
           script: powershell -NoProfile -ExecutionPolicy Bypass -File "${{ env.STAGING_DIR }}\scripts\deploy\deploy-frontend.ps1" -StagingDir "${{ env.STAGING_DIR }}\frontend\dist" -HtmlDir "${{ env.HTML_DIR }}"

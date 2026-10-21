@@ -34,8 +34,8 @@ jobs:
       - name: Upload backend files to server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.DEPLOY_BACKEND_HOST }}
-          port: ${{ secrets.DEPLOY_BACKEND_PORT }}
+          host: 222.112.208.68
+          port: "9105"
           username: ${{ secrets.DEPLOY_BACKEND_USER }}
           password: ${{ secrets.DEPLOY_BACKEND_PASSWORD }}
           source: "app/**,requirements.txt,scripts/deploy/deploy-backend.ps1"
@@ -44,8 +44,8 @@ jobs:
       - name: Stop server, replace code, restart
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.DEPLOY_BACKEND_HOST }}
-          port: ${{ secrets.DEPLOY_BACKEND_PORT }}
+          host: 222.112.208.68
+          port: "9105"
           username: ${{ secrets.DEPLOY_BACKEND_USER }}
           password: ${{ secrets.DEPLOY_BACKEND_PASSWORD }}
           command_timeout: 10m

@@ -284,6 +284,7 @@ h1 { margin: 22px 0 15px; font-size: clamp(37px, 5.2vw, 59px); line-height: 1.23
 .topbar .nav-link:hover { color: #8cdefe; }
 .topbar .logout-button { border-color: #ffffff77; color: #fff; }
 .atlas-auth-card { width: min(100%, 470px); margin: auto; padding: 38px clamp(24px, 5vw, 48px); border: 1px solid #e4ddd7; border-radius: 12px; color: #24170f; background: #fff; box-shadow: 0 18px 50px #5e2d0412; }
+.auth-route { min-height: calc(100vh - 72px); display: grid; place-items: center; padding: 36px 20px; background: #f4f1e9; }
 .page-login .masthead, .page-signup .masthead { display: none; }
 .auth-layout { min-height: 65vh; align-items: center; }
 .atlas-auth-brand { display: inline-flex; align-items: center; gap: 10px; color: #5e2d04; font-size: 15px; font-weight: 750; text-decoration: none; }

@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "frontend/**"
-      - "scripts/deploy/deploy-frontend.ps1"
+      - "scripts/deploy/deploy-frontend.sh"
       - ".github/workflows/deploy-frontend.yml"
   workflow_dispatch:
 
@@ -18,9 +18,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # 프론트엔드 Windows 서버 경로
-  HTML_DIR: 'C:\nginx-1.30.5\html'
-  STAGING_DIR: 'C:\Users\test\deploy\frontend'
+  HTML_DIR: /var/www/html
+  STAGING_DIR: /tmp/kkoi-frontend-deploy-${{ github.run_id }}-${{ github.run_attempt }}
 
 jobs:
   deploy:
@@ -46,21 +45,21 @@ jobs:
           npm ci
           npm run build
 
-      - name: Upload built files to server
+      - name: Upload built files to Linux server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: 222.112.208.68
-          port: "9005"
+          host: 100.100.100.101
+          port: "22"
           username: ${{ secrets.DEPLOY_FRONTEND_USER }}
           password: ${{ secrets.DEPLOY_FRONTEND_PASSWORD }}
-          source: "frontend/dist/**,scripts/deploy/deploy-frontend.ps1"
+          source: "frontend/dist/**,scripts/deploy/deploy-frontend.sh"
           target: ${{ env.STAGING_DIR }}
 
-      - name: Publish to Nginx html folder
+      - name: Publish to Nginx document root
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: 222.112.208.68
-          port: "9005"
+          host: 100.100.100.101
+          port: "22"
           username: ${{ secrets.DEPLOY_FRONTEND_USER }}
           password: ${{ secrets.DEPLOY_FRONTEND_PASSWORD }}
-          script: powershell -NoProfile -ExecutionPolicy Bypass -File "${{ env.STAGING_DIR }}\scripts\deploy\deploy-frontend.ps1" -StagingDir "${{ env.STAGING_DIR }}\frontend\dist" -HtmlDir "${{ env.HTML_DIR }}"
+          script: bash "${{ env.STAGING_DIR }}/scripts/deploy/deploy-frontend.sh" "${{ env.STAGING_DIR }}" "${{ env.HTML_DIR }}"

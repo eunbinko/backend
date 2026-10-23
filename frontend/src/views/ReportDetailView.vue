@@ -53,7 +53,7 @@ onMounted(async () => { await loadCurrentUser(); await load(); await confirmRedi
 </script>
 
 <template>
-  <main class="report-detail-page">
+  <main id="main" class="report-detail-page">
     <a class="report-back" href="/" @click.prevent="navigate('/')">← 지도 돌아가기</a>
     <article v-if="report" class="report-summary-card">
       <p class="atlas-kicker">{{ report.company_name }} · {{ report.report_year }} 공시</p>
